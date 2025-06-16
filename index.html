@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MathMission - Global Adventures</title>
+    <style>
+        body { margin: 0; background: #222; color: #fff; font-family: sans-serif; }
+        canvas { display: block; margin: auto; background: #333; }
+        #controls { text-align: center; padding: 10px; }
+    </style>
+</head>
+<body>
+<div id="controls">
+    <select id="languageSelect">
+        <option value="en-US">English</option>
+        <option value="fr-FR">French</option>
+        <option value="es-ES">Spanish</option>
+    </select>
+    <button onclick="resetProgress()">Reset Progress</button>
+</div>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<audio id="bgMusic" loop autoplay>
+  <source src="https://cdn.pixabay.com/download/audio/2023/03/23/audio_9de5a4032e.mp3?filename=fun-kids-140920.mp3" type="audio/mpeg">
+</audio>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const bgMusic = document.getElementById("bgMusic");
+let lang = document.getElementById("languageSelect").value;
+
+document.getElementById("languageSelect").addEventListener("change", (e) => {
+    lang = e.target.value;
+    narrate("Language changed.", lang);
+});
+
+const islands = ["fractions", "decimals", "shapes", "measurement", "logic"];
+let currentIsland = "fractions";
+let score = 0;
+let startTime = Date.now();
+let playerName = "Player";
+
+function narrate(text, language) {
+    if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = language || lang;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utter);
+    }
+}
+
+function saveProgress() {
+    const progress = { playerName, currentIsland, score };
+    localStorage.setItem("mathMissionProgress", JSON.stringify(progress));
+}
+
+function loadProgress() {
+    const saved = localStorage.getItem("mathMissionProgress");
+    if (saved) {
+        const { playerName: n, currentIsland: i, score: s } = JSON.parse(saved);
+        playerName = n; currentIsland = i; score = s;
+    }
+}
+
+function resetProgress() {
+    localStorage.removeItem("mathMissionProgress");
+    score = 0;
+    currentIsland = "fractions";
+    narrate("Progress reset.", lang);
+    renderScene();
+}
+
+function renderScene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "22px sans-serif";
+    ctx.fillText("Welcome to " + capitalize(currentIsland) + "!", 250, 80);
+    ctx.fillText("Score: " + score, 20, 40);
+    ctx.fillText("Time: " + Math.floor((Date.now() - startTime) / 1000) + "s", 640, 40);
+    ctx.fillText("Player: " + playerName, 20, 560);
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function startIsland(island) {
+    currentIsland = island;
+    score = 0;
+    startTime = Date.now();
+    narrate("Welcome to " + capitalize(island) + ".", lang);
+    renderScene();
+    saveProgress();
+}
+
+loadProgress();
+renderScene();
+function updateFirebaseLeaderboard(player, score) {
+    console.log("Firebase leaderboard update for", player, score);
+}
+</script>
+</body>
+</html>
